@@ -21,17 +21,19 @@ set(GETOPT ${GLFW_SOURCE_DIR}/deps/getopt.h
 set(TINYCTHREAD ${GLFW_SOURCE_DIR}/deps/tinycthread.h
                 ${GLFW_SOURCE_DIR}/deps/tinycthread.c)
 
-#add_executable(clipboard clipboard.c ${GETOPT})
-#add_executable(defaults defaults.c)
-#add_executable(events events.c)
-#add_executable(fsaa fsaa.c ${GETOPT})
-#add_executable(gamma gamma.c ${GETOPT})
-#add_executable(glfwinfo glfwinfo.c ${GETOPT})
-#add_executable(iconify iconify.c ${GETOPT})
-#add_executable(joysticks joysticks.c)
-#add_executable(modes modes.c ${GETOPT})
-#add_executable(peter peter.c)
-#add_executable(reopen reopen.c)
+if (NOT CYGWIN)
+add_executable(clipboard clipboard.c ${GETOPT})
+add_executable(defaults defaults.c)
+add_executable(events events.c)
+add_executable(fsaa fsaa.c ${GETOPT})
+add_executable(gamma gamma.c ${GETOPT})
+add_executable(glfwinfo glfwinfo.c ${GETOPT})
+add_executable(iconify iconify.c ${GETOPT})
+add_executable(joysticks joysticks.c)
+add_executable(modes modes.c ${GETOPT})
+add_executable(peter peter.c)
+add_executable(reopen reopen.c)
+endif()
 
 add_executable(accuracy WIN32 MACOSX_BUNDLE accuracy.c)
 set_target_properties(accuracy PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Accuracy")
@@ -51,24 +53,11 @@ set_target_properties(title PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Title")
 add_executable(windows WIN32 MACOSX_BUNDLE windows.c)
 set_target_properties(windows PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Windows")
 
-if (CYGWIN)
-add_executable(glfwinfo WIN32 MACOSX_BUNDLE glfwinfo.c)
-set_target_properties(windows PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "glfwinfo")
-endif()
-
 target_link_libraries(threads ${CMAKE_THREAD_LIBS_INIT} ${RT_LIBRARY})
 
-if (NOT CYGWIN)
-   set(WINDOWS_BINARIES accuracy sharing tearing threads title windows)
-   set(CONSOLE_BINARIES clipboard defaults events fsaa gamma glfwinfo
+set(WINDOWS_BINARIES accuracy sharing tearing threads title windows)
+set(CONSOLE_BINARIES clipboard defaults events fsaa gamma glfwinfo
       			                  iconify joysticks modes peter reopen)
-else()
-   # Because the "CONSOLE_BINARIES" fail with gdi32 link errors
-   # Not that this helps
-   set(WINDOWS_BINARIES accuracy sharing tearing threads title windows
-    clipboard defaults events fsaa gamma glfwinfo 
-    iconify joysticks modes peter reopen)
-endif()
 
 if (MSVC)
     # Tell MSVC to use main instead of WinMain for Windows subsystem executables
