@@ -1,6 +1,7 @@
 project(GLFW C)
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.4)
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 set(GLFW_VERSION_MAJOR "3")
 set(GLFW_VERSION_MINOR "0")
@@ -10,13 +11,13 @@ set(GLFW_VERSION "${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}")
 set(GLFW_VERSION_FULL "${GLFW_VERSION}.${GLFW_VERSION_PATCH}${GLFW_VERSION_EXTRA}")
 set(LIB_SUFFIX "" CACHE STRING "Takes an empty string or 64. Directory where lib will be installed: lib or lib64")
 
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" ONN)
 option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" ON)
 option(GLFW_BUILD_TESTS "Build the GLFW test programs" ON)
 option(GLFW_INSTALL "Generate installation target" ON)
 option(GLFW_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
 
-if (WIN32)
+if (WIN32 OR CYGWIN)
     option(GLFW_USE_DWM_SWAP_INTERVAL "Set swap interval even when DWM compositing is enabled" OFF)
 endif()
 
@@ -114,7 +115,7 @@ endif()
 #--------------------------------------------------------------------
 # Detect and select backend APIs
 #--------------------------------------------------------------------
-if (WIN32)
+if (WIN32 OR CYGWIN)
     set(_GLFW_WIN32 1)
     message(STATUS "Using Win32 for window creation") 
 
