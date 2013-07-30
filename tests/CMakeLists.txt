@@ -51,6 +51,11 @@ set_target_properties(title PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Title")
 add_executable(windows WIN32 MACOSX_BUNDLE windows.c)
 set_target_properties(windows PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Windows")
 
+if (CYGWIN)
+add_executable(glfwinfo WIN32 MACOSX_BUNDLE glfwinfo.c)
+set_target_properties(windows PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "glfwinfo")
+endif()
+
 target_link_libraries(threads ${CMAKE_THREAD_LIBS_INIT} ${RT_LIBRARY})
 
 if (NOT CYGWIN)
