@@ -1,8 +1,5 @@
 //========================================================================
-// GLFW - An OpenGL library
-// Platform:    Cocoa/NSOpenGL
-// API Version: 3.0
-// WWW:         http://www.glfw.org/
+// GLFW 3.0 OS X - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2010 Camilla Berglund <elmindreda@elmindreda.org>
 //
@@ -74,7 +71,7 @@ static float transformY(float y)
 static NSRect convertRectToBacking(_GLFWwindow* window, NSRect contentRect)
 {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-    if ([window->ns.view respondsToSelector:@selector(convertRectToBacking:)])
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_7)
         return [window->ns.view convertRectToBacking:contentRect];
     else
 #endif /*MAC_OS_X_VERSION_MAX_ALLOWED*/
@@ -609,7 +606,7 @@ static int translateKey(unsigned int key)
     double deltaX, deltaY;
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-    if ([event respondsToSelector:@selector(hasPreciseScrollingDeltas)])
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_7)
     {
         deltaX = [event scrollingDeltaX];
         deltaY = [event scrollingDeltaY];
@@ -846,7 +843,7 @@ static GLboolean createWindow(_GLFWwindow* window,
     window->ns.view = [[GLFWContentView alloc] initWithGlfwWindow:window];
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-    if ([window->ns.view respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)])
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_7)
         [window->ns.view setWantsBestResolutionOpenGLSurface:YES];
 #endif /*MAC_OS_X_VERSION_MAX_ALLOWED*/
 
@@ -858,7 +855,7 @@ static GLboolean createWindow(_GLFWwindow* window,
     [window->ns.object center];
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-    if ([window->ns.object respondsToSelector:@selector(setRestorable:)])
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_7)
         [window->ns.object setRestorable:NO];
 #endif /*MAC_OS_X_VERSION_MAX_ALLOWED*/
 
