@@ -1,7 +1,6 @@
 /*************************************************************************
- * GLFW - An OpenGL library
- * API version: 3.0
- * WWW:         http://www.glfw.org/
+ * GLFW 3.0 - www.glfw.org
+ * A library for OpenGL, window and input
  *------------------------------------------------------------------------
  * Copyright (c) 2002-2006 Marcus Geelnard
  * Copyright (c) 2006-2010 Camilla Berglund <elmindreda@elmindreda.org>
@@ -134,10 +133,38 @@ extern "C" {
 
 /* Most GL/glu.h variants on Windows need wchar_t
  * OpenGL/gl.h blocks the definition of ptrdiff_t by glext.h on OS X */
-#include <stddef.h>
+#if !defined(GLFW_INCLUDE_NONE)
+ #include <stddef.h>
+#endif
 
-
-/* ---------------- GLFW related system specific defines ----------------- */
+/* Include the chosen client API headers.
+ */
+#if defined(__APPLE_CC__)
+  #if defined(GLFW_INCLUDE_GLCOREARB)
+    #include <OpenGL/gl3.h>
+  #elif !defined(GLFW_INCLUDE_NONE)
+    #define GL_GLEXT_LEGACY
+    #include <OpenGL/gl.h>
+  #endif
+  #if defined(GLFW_INCLUDE_GLU)
+    #include <OpenGL/glu.h>
+  #endif
+#else
+  #if defined(GLFW_INCLUDE_GLCOREARB)
+    #include <GL/glcorearb.h>
+  #elif defined(GLFW_INCLUDE_ES1)
+    #include <GLES/gl.h>
+  #elif defined(GLFW_INCLUDE_ES2)
+    #include <GLES2/gl2.h>
+  #elif defined(GLFW_INCLUDE_ES3)
+    #include <GLES3/gl3.h>
+  #elif !defined(GLFW_INCLUDE_NONE)
+    #include <GL/gl.h>
+  #endif
+  #if defined(GLFW_INCLUDE_GLU)
+    #include <GL/glu.h>
+  #endif
+#endif
 
 #if defined(GLFW_DLL) && defined(_GLFW_BUILD_DLL)
  /* GLFW_DLL is defined by users of GLFW when compiling programs that will link
@@ -174,35 +201,6 @@ extern "C" {
 
 /* -------------------- END SYSTEM/COMPILER SPECIFIC --------------------- */
 
-/* Include the chosen client API headers.
- */
-#if defined(__APPLE_CC__)
-  #if defined(GLFW_INCLUDE_GLCOREARB)
-    #include <OpenGL/gl3.h>
-  #elif !defined(GLFW_INCLUDE_NONE)
-    #define GL_GLEXT_LEGACY
-    #include <OpenGL/gl.h>
-  #endif
-  #if defined(GLFW_INCLUDE_GLU)
-    #include <OpenGL/glu.h>
-  #endif
-#else
-  #if defined(GLFW_INCLUDE_GLCOREARB)
-    #include <GL/glcorearb.h>
-  #elif defined(GLFW_INCLUDE_ES1)
-    #include <GLES/gl.h>
-  #elif defined(GLFW_INCLUDE_ES2)
-    #include <GLES2/gl2.h>
-  #elif defined(GLFW_INCLUDE_ES3)
-    #include <GLES3/gl3.h>
-  #elif !defined(GLFW_INCLUDE_NONE)
-    #include <GL/gl.h>
-  #endif
-  #if defined(GLFW_INCLUDE_GLU)
-    #include <GL/glu.h>
-  #endif
-#endif
-
 
 /*************************************************************************
  * GLFW API tokens
@@ -229,7 +227,7 @@ extern "C" {
  *  API changes.
  *  @ingroup init
  */
-#define GLFW_VERSION_REVISION       2
+#define GLFW_VERSION_REVISION       4
 /*! @} */
 
 /*! @name Key and button actions
@@ -708,8 +706,8 @@ typedef void (* GLFWmousebuttonfun)(GLFWwindow*,int,int,int);
  *  This is the function signature for cursor position callback functions.
  *
  *  @param[in] window The window that received the event.
- *  @param[in] xpos The new x-coordinate of the cursor.
- *  @param[in] ypos The new y-coordinate of the cursor.
+ *  @param[in] xpos The new x-coordinate, in screen coordinates, of the cursor.
+ *  @param[in] ypos The new y-coordinate, in screen coordinates, of the cursor.
  *
  *  @sa glfwSetCursorPosCallback
  *
@@ -794,7 +792,7 @@ typedef void (* GLFWmonitorfun)(GLFWmonitor*,int);
  *
  *  @ingroup monitor
  */
-typedef struct
+typedef struct GLFWvidmode
 {
     /*! The width, in screen coordinates, of the video mode.
      */
@@ -824,7 +822,7 @@ typedef struct
  *
  *  @ingroup monitor
  */
-typedef struct
+typedef struct GLFWgammaramp
 {
     /*! An array of value describing the response of the red channel.
      */
@@ -868,7 +866,7 @@ typedef struct
  *  @note This function may take several seconds to complete on some systems,
  *  while on other systems it may take only a fraction of a second to complete.
  *
- *  @note **Mac OS X:** This function will change the current directory of the
+ *  @note **OS X:** This function will change the current directory of the
  *  application to the `Contents/Resources` subdirectory of the application's
  *  bundle, if present.
  *
@@ -1234,16 +1232,23 @@ GLFWAPI void glfwWindowHint(int target, int hint);
  *  to not share resources.
  *  @return The handle of the created window, or `NULL` if an error occurred.
  *
+ *  @remarks **Windows:** Window creation will fail if the Microsoft GDI
+ *  software OpenGL implementation is the only one available.
+ *
  *  @remarks **Windows:** If the executable has an icon resource named
  *  `GLFW_ICON,` it will be set as the icon for the window.  If no such icon is
  *  present, the `IDI_WINLOGO` icon will be used instead.
  *
- *  @remarks **Mac OS X:** The GLFW window has no icon, as it is not a document
+ *  @remarks **OS X:** The GLFW window has no icon, as it is not a document
  *  window, but the dock icon will be the same as the application bundle's icon.
  *  Also, the first time a window is opened the menu bar is populated with
  *  common commands like Hide, Quit and About.  The (minimal) about dialog uses
  *  information from the application's bundle.  For more information on bundles,
  *  see the Bundle Programming Guide provided by Apple.
+ *
+ *  @remarks The swap interval is not set during window creation, but is left at
+ *  the default value for that platform.  For more information, see @ref
+ *  glfwSwapInterval.
  *
  *  @note This function may only be called from the main thread.
  *
@@ -1369,7 +1374,8 @@ GLFWAPI void glfwSetWindowPos(GLFWwindow* window, int xpos, int ypos);
 /*! @brief Retrieves the size of the client area of the specified window.
  *
  *  This function retrieves the size, in screen coordinates, of the client area
- *  of the specified window.
+ *  of the specified window.  If you wish to retrieve the size of the
+ *  framebuffer in pixels, see @ref glfwGetFramebufferSize.
  *
  *  @param[in] window The window whose size to retrieve.
  *  @param[out] width Where to store the width, in screen coordinates, of the
@@ -1410,7 +1416,8 @@ GLFWAPI void glfwSetWindowSize(GLFWwindow* window, int width, int height);
 /*! @brief Retrieves the size of the framebuffer of the specified window.
  *
  *  This function retrieves the size, in pixels, of the framebuffer of the
- *  specified window.
+ *  specified window.  If you wish to retrieve the size of the window in screen
+ *  coordinates, see @ref glfwGetWindowSize.
  *
  *  @param[in] window The window whose framebuffer to query.
  *  @param[out] width Where to store the width, in pixels, of the framebuffer,
@@ -1593,7 +1600,7 @@ GLFWAPI GLFWwindowsizefun glfwSetWindowSizeCallback(GLFWwindow* window, GLFWwind
  *  @return The previously set callback, or `NULL` if no callback was set or an
  *  error occurred.
  *
- *  @remarks **Mac OS X:** Selecting Quit from the application menu will
+ *  @remarks **OS X:** Selecting Quit from the application menu will
  *  trigger the close callback for all windows.
  *
  *  @ingroup window
@@ -1820,7 +1827,8 @@ GLFWAPI int glfwGetMouseButton(GLFWwindow* window, int button);
 /*! @brief Retrieves the last reported cursor position, relative to the client
  *  area of the window.
  *
- *  This function returns the last reported position of the cursor to the
+ *  This function returns the last reported position of the cursor, in screen
+ *  coordinates, relative to the upper-left corner of the client area of the
  *  specified window.
  *
  *  If the cursor is disabled (with `GLFW_CURSOR_DISABLED`) then the cursor
@@ -1843,11 +1851,13 @@ GLFWAPI int glfwGetMouseButton(GLFWwindow* window, int button);
  */
 GLFWAPI void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos);
 
-/*! @brief Sets the position of the cursor, relative to the client area of the window.
+/*! @brief Sets the position of the cursor, relative to the client area of the
+ *  window.
  *
- *  This function sets the position of the cursor.  The specified window must be
- *  focused.  If the window does not have focus when this function is called, it
- *  fails silently.
+ *  This function sets the position, in screen coordinates, of the cursor
+ *  relative to the upper-left corner of the client area of the specified
+ *  window.  The window must be focused.  If the window does not have focus when
+ *  this function is called, it fails silently.
  *
  *  If the cursor is disabled (with `GLFW_CURSOR_DISABLED`) then the cursor
  *  position is unbounded and limited only by the minimum and maximum values of
@@ -1855,9 +1865,9 @@ GLFWAPI void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos);
  *
  *  @param[in] window The desired window.
  *  @param[in] xpos The desired x-coordinate, relative to the left edge of the
- *  client area, or `NULL`.
+ *  client area.
  *  @param[in] ypos The desired y-coordinate, relative to the top edge of the
- *  client area, or `NULL`.
+ *  client area.
  *
  *  @sa glfwGetCursorPos
  *
@@ -1943,7 +1953,8 @@ GLFWAPI GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* window, GLFWmo
  *
  *  This function sets the cursor position callback of the specified window,
  *  which is called when the cursor is moved.  The callback is provided with the
- *  position relative to the upper-left corner of the client area of the window.
+ *  position, in screen coordinates, relative to the upper-left corner of the
+ *  client area of the window.
  *
  *  @param[in] window The window whose callback to set.
  *  @param[in] cbfun The new callback, or `NULL` to remove the currently set
@@ -2202,6 +2213,11 @@ GLFWAPI void glfwSwapBuffers(GLFWwindow* window);
  *  until the buffers are swapped by @ref glfwSwapBuffers.
  *
  *  @remarks This function may be called from secondary threads.
+ *
+ *  @note This function is not called during window creation, leaving the swap
+ *  interval set to whatever is the default on that platform.  This is done
+ *  because some swap interval extensions used by GLFW do not allow the swap
+ *  interval to be reset to zero once it has been set to a non-zero value.
  *
  *  @note Some GPU drivers do not honor the requested swap interval, either
  *  because of user settings that override the request or due to bugs in the

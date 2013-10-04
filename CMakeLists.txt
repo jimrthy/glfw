@@ -5,7 +5,7 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 set(GLFW_VERSION_MAJOR "3")
 set(GLFW_VERSION_MINOR "0")
-set(GLFW_VERSION_PATCH "2")
+set(GLFW_VERSION_PATCH "4")
 set(GLFW_VERSION_EXTRA "")
 set(GLFW_VERSION "${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}")
 set(GLFW_VERSION_FULL "${GLFW_VERSION}.${GLFW_VERSION_PATCH}${GLFW_VERSION_EXTRA}")
@@ -19,6 +19,7 @@ option(GLFW_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
 
 if (WIN32 OR CYGWIN)
     option(GLFW_USE_DWM_SWAP_INTERVAL "Set swap interval even when DWM compositing is enabled" OFF)
+    option(GLFW_USE_OPTIMUS_HPG "Force use of high-performance GPU on Optimus systems" OFF)
 endif()
 
 if (APPLE)
@@ -160,6 +161,16 @@ if (_GLFW_WIN32)
     if (GLFW_USE_DWM_SWAP_INTERVAL)
         set(_GLFW_USE_DWM_SWAP_INTERVAL 1)
     endif()
+    if (GLFW_USE_OPTIMUS_HPG)
+        set(_GLFW_USE_OPTIMUS_HPG 1)
+    endif()
+
+    # HACK: When building on MinGW, WINVER and UNICODE need to be defined before
+    # the inclusion of stddef.h (by glfw3.h), which is itself included before
+    # win32_platform.h.  We define them here until a saner solution can be found
+    # NOTE: MinGW-w64 and Visual C++ do /not/ need this hack.
+    add_definitions(-DUNICODE)
+    add_definitions(-DWINVER=0x0501)
 endif()
 
 #--------------------------------------------------------------------
@@ -201,7 +212,13 @@ if (_GLFW_X11)
     endif()
 
     list(APPEND glfw_INCLUDE_DIRS ${X11_Xinput_INCLUDE_PATH})
-    list(APPEND glfw_LIBRARIES ${X11_Xinput_LIB})
+
+    if (X11_Xinput_LIB)
+        list(APPEND glfw_LIBRARIES ${X11_Xinput_LIB})
+    else()
+        # Backwards compatibility (bug in CMake 2.8.7)
+        list(APPEND glfw_LIBRARIES Xi)
+    endif()
     set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xi")
 
     # Check for Xf86VidMode (fallback gamma control)
@@ -370,8 +387,8 @@ endif()
 configure_file(${GLFW_SOURCE_DIR}/docs/Doxyfile.in
                ${GLFW_BINARY_DIR}/docs/Doxyfile @ONLY)
 
-configure_file(${GLFW_SOURCE_DIR}/src/config.h.in 
-               ${GLFW_BINARY_DIR}/src/config.h @ONLY)
+configure_file(${GLFW_SOURCE_DIR}/src/glfw_config.h.in 
+               ${GLFW_BINARY_DIR}/src/glfw_config.h @ONLY)
 
 configure_file(${GLFW_SOURCE_DIR}/src/glfwConfig.cmake.in
                ${GLFW_BINARY_DIR}/src/glfwConfig.cmake @ONLY)
